@@ -1,11 +1,10 @@
-/* proxy.js — same-origin proxy to api.cloudflare.com
-   حل CORS + مسدودسازی شبکه. Worker catch-all (entry point). */
+/* miliconfig worker — entry point for Cloudflare Workers */
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
-    const PREFIX = '/__cf/';
 
-    // ---- پراکسی: مرورگر -> این ورکر -> api.cloudflare.com ----
+    // ---- پراکسی به api.cloudflare.com ----
+    const PREFIX = '/__cf/';
     if (url.pathname.startsWith(PREFIX)) {
       if (request.method === 'OPTIONS') {
         return new Response(null, { status: 204, headers: {
@@ -44,8 +43,11 @@ export default {
       }
     }
 
-    // ---- بقیهٔ درخواست‌ها: سروِ سایت استاتیک ویزارد از assets ----
-    if (env.ASSETS && env.ASSETS.fetch) return env.ASSETS.fetch(request);
+    // ---- سروِ فایل استاتیک از public/ ----
+    if (env.ASSETS && env.ASSETS.fetch) {
+      return env.ASSETS.fetch(request);
+    }
+
     return new Response('Not found', { status: 404 });
   }
 };
